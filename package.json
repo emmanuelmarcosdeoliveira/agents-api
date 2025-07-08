@@ -1,5 +1,5 @@
 {
-  "name": "back-end-agents",
+  "name": "agents-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -20,7 +20,15 @@
   },
   "homepage": "https://github.com/emmanuelmarcosdeoliveira/agents-back-end#readme",
   "devDependencies": {
+    "@biomejs/biome": "2.0.6",
     "@types/node": "^24.0.10",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "ultracite": "5.0.32"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "fastify": "^5.4.0",
+    "fastify-type-provider-zod": "^5.0.1",
+    "zod": "^3.25.75"
   }
 }
