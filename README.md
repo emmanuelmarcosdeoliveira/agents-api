@@ -15,6 +15,7 @@ Desenvolvido por **Emmanuel Oliveira | OFS**
 - [Sobre o Projeto](#sobre-o-projeto)
 - [Tecnologias e Bibliotecas](#tecnologias-e-bibliotecas)
 - [Padrões de Projeto](#padrões-de-projeto)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
 - [Configuração e Setup](#configuração-e-setup)
 - [Scripts Disponíveis](#scripts-disponíveis)
 - [Exemplos de Uso da API](#exemplos-de-uso-da-api)
@@ -22,89 +23,150 @@ Desenvolvido por **Emmanuel Oliveira | OFS**
 
 ## Sobre o Projeto
 
-O **Let Me Ask** é uma API backend para gerenciamento de salas (rooms), desenvolvida em Node.js com Fastify, Drizzle ORM e PostgreSQL, seguindo boas práticas de tipagem, validação e organização de código.
+O **Let Me Ask** é uma API backend para gerenciamento de salas (rooms), perguntas e transcrição de áudios, desenvolvida em Node.js com Fastify, Drizzle ORM, PostgreSQL e integração com a API Gemini da Google para IA generativa e embeddings.
 
 ## Tecnologias e Bibliotecas
 
 - **Node.js** (TypeScript)
 - **Fastify**: Framework web rápido e eficiente
 - **@fastify/cors**: Suporte a CORS
+- **@fastify/multipart**: Upload de arquivos (áudio)
 - **fastify-type-provider-zod**: Tipagem e validação de schemas com Zod
 - **Zod**: Validação de dados e variáveis de ambiente
 - **Drizzle ORM**: ORM moderno para PostgreSQL
 - **drizzle-kit**: Migrations e geração de schemas
 - **drizzle-seed**: Seed de dados para o banco
-- **PostgreSQL**: Banco de dados relacional
+- **PostgreSQL**: Banco de dados relacional com extensão pgvector
+- **pgvector**: Suporte a embeddings vetoriais
+- **@google/genai**: Integração com Gemini API (IA generativa)
 - **Biome**: Linter e formatter
 - **Ultracite**: Utilitários de desenvolvimento
+- **TypeScript**: Tipagem estática
 
 ## Padrões de Projeto
 
 - **Type-safe**: Uso extensivo de TypeScript e Zod para validação e tipagem
-- **Modularização**: Separação clara entre rotas, banco de dados e configuração
+- **Modularização**: Separação clara entre rotas, banco de dados, serviços e configuração
 - **Environment-driven**: Configuração via variáveis de ambiente validadas
 - **Migrations e Seeds**: Controle de versão do banco e popularização de dados
+- **Integração com IA**: Uso de embeddings e geração de respostas contextuais via Gemini
+
+## Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz com as seguintes variáveis:
+
+```
+PORT=3333
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/agents
+GEMINI_API_KEY=sua-chave-gemini
+```
+
+> **Dica:** Para rodar com Docker, use as credenciais do docker-compose.
 
 ## Configuração e Setup
 
-1. **Clone o repositório**
+### 1. Clone o repositório
 
-   ```bash
-   git clone https://github.com/emmanuelmarcosdeoliveira/agents-back-end.git
-   cd agents-back-end
-   ```
+```bash
+git clone https://github.com/emmanuelmarcosdeoliveira/agents-api
+cd agents-api
+```
 
-2. **Instale as dependências**
+### 2. Instale as dependências
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. **Configure as variáveis de ambiente**  
-   Crie um arquivo `.env` na raiz com:
+### 3. Configure o banco de dados
 
-   ```
-   PORT=3333
-   DATABASE_URL=postgresql://usuario:senha@localhost:5432/letmeask
-   ```
+- **Via Docker:**
 
-4. **Configure o banco de dados**
+```bash
+docker-compose up -d
+```
 
-   - Certifique-se de ter um banco PostgreSQL rodando.
-   - Ajuste o `DATABASE_URL` conforme seu ambiente.
+O banco estará disponível em `postgresql://docker:docker@localhost:5432/agents`.
 
-5. **Rode as migrations e seeds**
+- **Manual:**
+  - Instale o PostgreSQL e a extensão `pgvector`.
+  - Crie o banco e configure o usuário.
 
-   ```bash
-   # Gere as migrations (se necessário)
-   npx drizzle-kit generate:pg
-   # Popule o banco com dados de exemplo
-   npm run db:seed
-   ```
+### 4. Configure as variáveis de ambiente
 
-6. **Inicie o servidor**
-   ```bash
-   npm run dev
-   ```
+Veja o exemplo acima e ajuste conforme seu ambiente.
+
+### 5. Rode as migrations e seeds
+
+```bash
+# Gere as migrations (se necessário)
+npx drizzle-kit generate
+# Aplique as migrations
+npx drizzle-kit migrate
+# Popule o banco com dados de exemplo
+npm run db:seed
+```
+
+### 6. Inicie o servidor
+
+```bash
+npm run dev
+```
+
+### 7. Lint e Format
+
+```bash
+npx biome check .
+npx biome format .
+```
 
 ## Scripts Disponíveis
 
 - `npm run dev` — Inicia o servidor em modo desenvolvimento com hot reload
 - `npm start` — Inicia o servidor em modo produção
 - `npm run db:seed` — Popula o banco de dados com dados de exemplo
+- `npx drizzle-kit generate` — Gera migrations a partir dos schemas
+- `npx drizzle-kit migrate` — Aplica as migrations
 
 ## Exemplos de Uso da API
 
 - **Health check**
-  ```
+  ```http
   GET http://localhost:3333/health
   ```
 - **Listar salas**
-  ```
+  ```http
   GET http://localhost:3333/rooms
+  ```
+- **Criar sala**
+  ```http
+  POST http://localhost:3333/rooms
+  Content-Type: application/json
+  {
+    "name": "Sala de teste",
+    "description": "Essa é uma sala de testes"
+  }
+  ```
+- **Listar perguntas de uma sala**
+  ```http
+  GET http://localhost:3333/rooms/{roomId}/questions
+  ```
+- **Criar pergunta em uma sala**
+  ```http
+  POST http://localhost:3333/rooms/{roomId}/questions
+  Content-Type: application/json
+  {
+    "question": "O que é Vue.js e a sua diferença em relação ao Angular?"
+  }
+  ```
+- **Upload de áudio para uma sala**
+  ```http
+  POST http://localhost:3333/rooms/{roomId}/audio
+  Content-Type: multipart/form-data
+  (enviar arquivo de áudio no campo 'file')
   ```
 
 ## Créditos
 
-Projeto desenvolvido por **Emmanuel Oliveira | OFS**  
+Projeto desenvolvido por **Emmanuel Oliveira | OFS**
 Todos os créditos para a [Rocketseat](https://rocketseat.com.br/)
